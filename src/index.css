@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* Global font family - ensures Poppins is used everywhere */
+body {
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Add to your global CSS */
+.navbar-glass {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: background-color, border-color;
+  }
