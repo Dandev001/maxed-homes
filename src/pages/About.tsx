@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ROUTES } from '../constants';
+import SEO from '../components/SEO';
 import houseImage from '../assets/images/house.jpg';
 import house1Image from '../assets/images/house1.jpg';
 import roadImage from '../assets/images/road.jpg';
@@ -85,7 +86,14 @@ const AnimatedStat = ({
 
 const About = () => {
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <>
+      <SEO
+        title="About Us"
+        description="Learn about Maxed Homes - our mission, vision, and commitment to providing exceptional vacation rental experiences in West Africa. Discover our story and values."
+        keywords="about Maxed Homes, vacation rental company, West Africa, hospitality, mission, vision, values"
+        url="/about"
+      />
+      <div className="min-h-screen overflow-x-hidden">
       {/* Hero Section */}
       <section 
         className="relative min-h-screen text-white overflow-hidden bg-cover bg-center bg-no-repeat"
@@ -493,7 +501,8 @@ const About = () => {
           </motion.div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 };
 

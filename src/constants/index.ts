@@ -1,17 +1,42 @@
+import { env, isEnvConfigured } from '../lib/env'
+
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+// Uses validated environment variable with fallback
+// Lazy access to prevent errors during module load
+export function getApiBaseUrl(): string {
+  if (isEnvConfigured()) {
+    return env.apiBaseUrl;
+  }
+  return 'http://localhost:3000/api'; // fallback
+}
+
+// For backward compatibility, but this will throw if env not configured
+// Use getApiBaseUrl() instead if you need safe access
+export const API_BASE_URL = (() => {
+  try {
+    return isEnvConfigured() ? env.apiBaseUrl : 'http://localhost:3000/api';
+  } catch {
+    return 'http://localhost:3000/api';
+  }
+})();
 
 // Route paths
 export const ROUTES = {
   HOME: '/',
   PROPERTIES: '/properties',
   PROPERTY_DETAIL: '/properties/:id',
+  BOOKING: '/booking/:id',
+  BOOKING_CONFIRMATION: '/booking-confirmation/:id',
   SEARCH: '/search',
   ABOUT: '/about',
   CONTACT: '/contact',
   LOGIN: '/login',
   REGISTER: '/register',
   DASHBOARD: '/dashboard',
+  PROFILE: '/profile',
+  SETTINGS: '/settings',
+  FAVORITES: '/favorites',
+  ADMIN_DASHBOARD: '/admin',
 } as const;
 
 // App Configuration
@@ -42,4 +67,4 @@ export const PROPERTY_TYPES = [
   'Townhouse',
   'Villa',
   'Studio',
-] as const; 
+] as const;

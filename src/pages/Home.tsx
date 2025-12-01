@@ -5,10 +5,21 @@ import WhyBookSection from '../components/home/WhyBookSection';
 import WhatWeOfferSection from '../components/home/WhatWeOfferSection';
 import PartnerWithUsSection from '../components/home/PartnerWithUsSection';
 import AvailableListingsSection from '../components/home/AvailableListingsSection';
+import SEO, { generateOrganizationStructuredData } from '../components/SEO';
 
 const Home = () => {
+  const structuredData = generateOrganizationStructuredData();
+
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <>
+      <SEO
+        title="Find Your Perfect Home"
+        description="Discover premium vacation rentals and properties in Côte d'Ivoire. Book your perfect stay with Maxed Homes - luxury accommodations with exceptional service."
+        keywords="vacation rentals, properties, Côte d'Ivoire, Abidjan, luxury homes, booking, accommodation, short-term rentals"
+        url="/"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen overflow-x-hidden">
       <HeroSection />
       <StatsSection />
       <AvailableListingsSection />
@@ -16,7 +27,8 @@ const Home = () => {
       <WhatWeOfferSection />
       <FAQSection />
       <PartnerWithUsSection />
-    </div>
+      </div>
+    </>
   );
 };
 

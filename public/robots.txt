@@ -1,0 +1,24 @@
+# robots.txt for Maxed Homes
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private pages
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /settings
+Disallow: /favorites
+Disallow: /admin
+Disallow: /booking
+Disallow: /booking-confirmation
+
+# Allow public pages
+Allow: /
+Allow: /properties
+Allow: /about
+Allow: /contact
+
+# Sitemap location
+Sitemap: https://maxedhomes.com/sitemap.xml
+

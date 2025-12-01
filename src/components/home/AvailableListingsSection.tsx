@@ -1,305 +1,175 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
-import houseImage from '../../assets/images/house.jpg';
-import house1Image from '../../assets/images/house1.jpg';
+import PropertyCard from '../ui/PropertyCard';
+import { useFeaturedProperties } from '../../hooks/useProperties';
+import type { PropertyWithImages } from '../../types/database';
+import type { Property } from '../../types';
+import { ROUTES } from '../../constants';
 
-interface ImageProps {
-  id: number;
-  image: string;
-  alt: string;
-}
+// Adapter function to convert PropertyWithImages to Property format
+const adaptPropertyForCard = (propertyWithImages: PropertyWithImages): Property => {
+  return {
+    id: propertyWithImages.id,
+    title: propertyWithImages.title,
+    description: propertyWithImages.description || '',
+    propertyType: (propertyWithImages.property_type === 'townhouse' ? 'house' : propertyWithImages.property_type) as 'house' | 'apartment' | 'condo' | 'villa',
+    bedrooms: propertyWithImages.bedrooms,
+    bathrooms: propertyWithImages.bathrooms,
+    maxGuests: propertyWithImages.max_guests,
+    areaSqft: propertyWithImages.area_sqft || 0,
+    pricePerNight: propertyWithImages.price_per_night,
+    cleaningFee: propertyWithImages.cleaning_fee,
+    securityDeposit: propertyWithImages.security_deposit,
+    address: propertyWithImages.address,
+    city: propertyWithImages.city,
+    state: propertyWithImages.state,
+    zipCode: propertyWithImages.zip_code || '',
+    country: propertyWithImages.country,
+    coordinates: propertyWithImages.latitude && propertyWithImages.longitude ? {
+      latitude: propertyWithImages.latitude,
+      longitude: propertyWithImages.longitude,
+    } : { latitude: 0, longitude: 0 },
+    amenities: (propertyWithImages.amenities || []).map((name: string, index: number) => ({ 
+      id: `amenity-${index}`, 
+      name, 
+      category: 'basic' as const,
+      icon: 'home' 
+    })),
+    houseRules: propertyWithImages.house_rules || '',
+    checkInTime: propertyWithImages.check_in_time,
+    checkOutTime: propertyWithImages.check_out_time,
+    minimumNights: propertyWithImages.minimum_nights,
+    maximumNights: propertyWithImages.maximum_nights || 0,
+    status: propertyWithImages.status,
+    isFeatured: propertyWithImages.is_featured,
+    images: (propertyWithImages.images || []).map((img) => ({
+      id: img.id,
+      url: img.image_url,
+      altText: img.alt_text || '',
+      caption: img.caption || '',
+      displayOrder: img.display_order,
+      isPrimary: img.is_primary,
+      createdAt: new Date(img.created_at),
+    })),
+    rating: 0, // Will be calculated from reviews
+    reviewCount: 0, // Will be calculated from reviews
+    hostId: propertyWithImages.host_id || '',
+    host: undefined, // Not needed for card display
+    propertyHighlights: [],
+    createdAt: new Date(propertyWithImages.created_at),
+    updatedAt: new Date(propertyWithImages.updated_at),
+  };
+};
 
-const ExperienceLuxurySection = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+const AvailableListingsSection = () => {
+  const navigate = useNavigate();
   const sectionRef = useRef<HTMLElement>(null);
-  const leftTextRef = useRef<HTMLDivElement>(null);
-  const rightCarouselRef = useRef<HTMLDivElement>(null);
-  const timelineRef = useRef<gsap.core.Timeline | null>(null);
-  const autoPlayTimelineRef = useRef<gsap.core.Tween | null>(null);
-
-  const carouselImages: ImageProps[] = [
-    {
-      id: 1,
-      image: houseImage,
-      alt: "Modern interior design"
-    },
-    {
-      id: 2,
-      image: house1Image,
-      alt: "Contemporary living space"
-    },
-    {
-      id: 3,
-      image: houseImage,
-      alt: "Stylish home design"
-    },
-    {
-      id: 4,
-      image: house1Image,
-      alt: "Elegant architecture"
-    },
-    {
-      id: 5,
-      image: houseImage,
-      alt: "Beautiful interior"
-    },
-    {
-      id: 6,
-      image: house1Image,
-      alt: "Luxury design"
-    }
-  ];
-
-  // Calculate max index
-  const maxIndex = carouselImages.length - 1;
+  const titleRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch featured properties
+  const { properties, loading, error } = useFeaturedProperties(6);
+  
+  // Adapt properties for display
+  const adaptedProperties = properties.map(adaptPropertyForCard);
 
   // Entrance animations
   useEffect(() => {
     const section = sectionRef.current;
-    const leftText = leftTextRef.current;
-    const rightCarousel = rightCarouselRef.current;
+    const title = titleRef.current;
+    const grid = gridRef.current;
 
-    if (!section || !leftText || !rightCarousel) return;
+    if (!section || !title || !grid) return;
 
     // Initial setup - set elements to invisible
-    gsap.set([leftText, rightCarousel], { opacity: 0, y: 50 });
+    gsap.set([title, grid], { opacity: 0, y: 30 });
 
     // Create entrance timeline
-    const entranceTl = gsap.timeline({ delay: 0.3 });
+    const entranceTl = gsap.timeline({ delay: 0.2 });
     
     entranceTl
-      .to(leftText, {
+      .to(title, {
         opacity: 1,
         y: 0,
-        duration: 1,
+        duration: 0.8,
         ease: "power3.out"
       })
-      .to(rightCarousel, {
+      .to(grid, {
         opacity: 1,
         y: 0,
-        duration: 1,
-        ease: "power3.out"
-      }, "-=0.6");
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0.1
+      }, "-=0.4");
+  }, [properties]);
 
-    // Animate images in sequence
-    const images = rightCarousel.querySelectorAll('.carousel-image');
-    gsap.set(images, { opacity: 0, scale: 0.8 });
-    
-    gsap.to(images, {
-      opacity: 1,
-      scale: 1,
-      duration: 0.8,
-      stagger: 0.1,
-      ease: "back.out(1.7)",
-      delay: 1.2
-    });
-
-  }, []);
-
-  // GSAP carousel animation with buttery smooth performance
-  const animateToSlide = useCallback((index: number) => {
-    if (!carouselRef.current) return;
-    
-    // Kill existing timeline for smooth transition
-    if (timelineRef.current) {
-      timelineRef.current.kill();
-    }
-
-    const carousel = carouselRef.current;
-    const slideWidth = carousel.clientWidth / carouselImages.length;
-    const translateX = -(index * slideWidth);
-    
-    // Use will-change for GPU acceleration
-    gsap.set(carousel, { willChange: 'transform' });
-    
-    timelineRef.current = gsap.timeline({
-      onComplete: () => {
-        // Remove will-change after animation for better performance
-        gsap.set(carousel, { willChange: 'auto' });
-      }
-    });
-    
-    timelineRef.current.to(carousel, {
-      x: translateX,
-      duration: 1.2,
-      ease: "power3.inOut",
-      force3D: true // Force hardware acceleration
-    });
-  }, [carouselImages.length]);
-
-  // Auto-play with smooth GSAP timing
-  useEffect(() => {
-    if (!isAutoPlaying) return;
-
-    // Clear any existing timeline
-    if (autoPlayTimelineRef.current) {
-      autoPlayTimelineRef.current.kill();
-    }
-
-    autoPlayTimelineRef.current = gsap.delayedCall(4, () => {
-      const nextIndex = currentIndex >= maxIndex ? 0 : currentIndex + 1;
-      setCurrentIndex(nextIndex);
-    });
-
-    return () => {
-      if (autoPlayTimelineRef.current) {
-        autoPlayTimelineRef.current.kill();
-      }
-    };
-  }, [isAutoPlaying, currentIndex, maxIndex]);
-
-  // Animate when currentIndex changes
-  useEffect(() => {
-    animateToSlide(currentIndex);
-  }, [currentIndex, animateToSlide]);
-
-  const goToSlide = (index: number) => {
-    const newIndex = Math.max(0, Math.min(index, maxIndex));
-    setCurrentIndex(newIndex);
-    setIsAutoPlaying(false);
-    
-    // Kill auto-play timeline
-    if (autoPlayTimelineRef.current) {
-      autoPlayTimelineRef.current.kill();
-    }
-    
-    // Resume auto-play after user interaction
-    gsap.delayedCall(6, () => setIsAutoPlaying(true));
-  };
-
-  const goToPrevious = () => {
-    const newIndex = currentIndex <= 0 ? maxIndex : currentIndex - 1;
-    goToSlide(newIndex);
-  };
-
-  const goToNext = () => {
-    const newIndex = currentIndex >= maxIndex ? 0 : currentIndex + 1;
-    goToSlide(newIndex);
+  const handlePropertyClick = (propertyId: string) => {
+    navigate(ROUTES.PROPERTY_DETAIL.replace(':id', propertyId));
   };
 
   return (
-    <section ref={sectionRef} className="relative z-10 py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      <div ref={containerRef} className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start">
-          
-          {/* Left Side - Text Content */}
-          <div ref={leftTextRef} className="space-y-6 lg:space-y-8">
-            <div className="space-y-6">
-              <h2 className="text-5xl sm:text-5xl lg:text-7xl text-[#1a1a1a] leading-tight font-light">
-              Welcome To
-                <br />
-                <span className="text-[#1a1a1a] font-light">
-                  Maxed Homes
-                </span>
-              </h2>
-              <div className="space-y-4 max-w-lg">
-                <p className="text-lg sm:text-xl text-gray-700 leading-relaxed font-medium">
-                  Step into a world where luxury meets comfort, where every corner tells a story of elegance.
-                </p>
-                <p className="text-base sm:text-lg text-gray-500 leading-relaxed">
-                  From breathtaking modern designs to timeless architectural masterpieces, each home in our collection is carefully curated to offer you an extraordinary living experience.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side - Carousel Container */}
-          <div ref={rightCarouselRef} className="relative">
-            {/* Main Carousel Container - Matches Moodboard */}
-            <div className="relative">
-              {/* Primary Image Container */}
-              <div className="relative h-[500px] sm:h-[600px] lg:h-[700px] xl:h-[800px] 2xl:h-[900px] overflow-hidden rounded-3xl shadow-lg">
-                <div 
-                  ref={carouselRef}
-                  className="flex will-change-transform h-full"
-                  style={{ width: `${carouselImages.length * 100}%` }}
-                >
-                  {carouselImages.map((image) => (
-                    <div
-                      key={image.id}
-                      className="flex-shrink-0 carousel-image"
-                      style={{ width: `${100 / carouselImages.length}%` }}
-                    >
-                      <img
-                        src={image.image}
-                        alt={image.alt}
-                        className="w-full h-full object-cover will-change-transform"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Navigation Controls - Bottom Right */}
-                <div className="absolute bottom-6 right-6 flex items-center space-x-3">
-                  {/* Play/Pause Button */}
-                  <button
-                    onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                    className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-gray-900 hover:text-white transition-all duration-300 flex items-center justify-center group"
-                    aria-label={isAutoPlaying ? "Pause slideshow" : "Play slideshow"}
-                  >
-                    {isAutoPlaying ? (
-                      <svg 
-                        className="w-3 h-3 text-gray-700 group-hover:text-white transition-colors" 
-                        fill="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                      </svg>
-                    ) : (
-                      <svg 
-                        className="w-3 h-3 text-gray-700 group-hover:text-white transition-colors ml-0.5" 
-                        fill="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    )}
-                  </button>
-                  
-                  {/* Left Arrow */}
-                  <button
-                    onClick={goToPrevious}
-                    className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-gray-900 hover:text-white transition-all duration-300 flex items-center justify-center group"
-                    aria-label="Previous image"
-                  >
-                    <svg 
-                      className="w-3 h-3 text-gray-700 group-hover:text-white transition-colors" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  
-                  {/* Right Arrow */}
-                  <button
-                    onClick={goToNext}
-                    className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-gray-900 hover:text-white transition-all duration-300 flex items-center justify-center group"
-                    aria-label="Next image"
-                  >
-                    <svg 
-                      className="w-3 h-3 text-gray-700 group-hover:text-white transition-colors" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-
-              </div>
-              
-            </div>
-          </div>
+    <section ref={sectionRef} className="relative z-10 py-16 sm:py-20 lg:py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div ref={titleRef} className="text-center mb-12 lg:mb-16">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl text-[#1a1a1a] font-light mb-4">
+            Available Listings
+          </h2>
+          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
+            Discover our handpicked selection of premium properties, each offering a unique experience
+          </p>
         </div>
+
+        {/* Properties Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
+            {[...Array(6)].map((_, index) => (
+              <div
+                key={index}
+                className="bg-gray-200 rounded-2xl h-[400px] animate-pulse"
+              />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">Error loading properties: {error}</p>
+            <p className="text-gray-600">Please try again later.</p>
+          </div>
+        ) : adaptedProperties.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No featured properties available at the moment.</p>
+          </div>
+        ) : (
+          <div
+            ref={gridRef}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8"
+          >
+            {adaptedProperties.map((property) => (
+              <PropertyCard
+                key={property.id}
+                property={property}
+                onViewDetails={handlePropertyClick}
+                className="h-full"
+              />
+            ))}
+          </div>
+        )}
+
+        {/* View All Button */}
+        {!loading && !error && adaptedProperties.length > 0 && (
+          <div className="text-center mt-12">
+            <button
+              onClick={() => navigate(ROUTES.PROPERTIES)}
+              className="px-8 py-3 bg-[#1a1a1a] text-white rounded-lg hover:bg-[#1a1a1a]/90 transition-colors font-medium text-lg"
+            >
+              View All Properties
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
 };
 
-export default ExperienceLuxurySection;
+export default AvailableListingsSection;

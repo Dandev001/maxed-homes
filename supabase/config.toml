@@ -1,0 +1,6 @@
+# Supabase Edge Functions Configuration
+# This file is used by Supabase CLI for local development
+
+[functions.send-email]
+verify_jwt = false  # Set to true if you want to verify JWT tokens
+

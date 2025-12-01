@@ -1,0 +1,125 @@
+-- ============================================================================
+-- Setup Property Images Storage Bucket Policies
+-- ============================================================================
+-- IMPORTANT: Storage policies CANNOT be created via SQL in Supabase.
+-- You MUST use the Supabase Dashboard UI to create storage policies.
+-- 
+-- This file contains the policy definitions for reference, but you need to
+-- create them manually through the Dashboard.
+-- ============================================================================
+
+-- ============================================================================
+-- ⚠️ DO NOT RUN THIS SQL FILE ⚠️
+-- ============================================================================
+-- Storage policies require owner permissions that regular SQL queries don't have.
+-- Use the Supabase Dashboard UI instead (see instructions below).
+-- ============================================================================
+
+-- ============================================================================
+-- POLICY DEFINITIONS (FOR REFERENCE ONLY)
+-- ============================================================================
+-- These are the policies you need to create in the Dashboard UI:
+--
+-- POLICY 1: Public Read Access
+--   Name: "Public can view property images"
+--   Operation: SELECT
+--   Target roles: public
+--   USING expression: bucket_id = 'property-images'
+--
+-- POLICY 2: Authenticated Upload
+--   Name: "Authenticated users can upload property images"
+--   Operation: INSERT
+--   Target roles: authenticated
+--   WITH CHECK expression: bucket_id = 'property-images' AND auth.role() = 'authenticated'
+--
+-- POLICY 3: Authenticated Update
+--   Name: "Authenticated users can update property images"
+--   Operation: UPDATE
+--   Target roles: authenticated
+--   USING expression: bucket_id = 'property-images' AND auth.role() = 'authenticated'
+--   WITH CHECK expression: bucket_id = 'property-images' AND auth.role() = 'authenticated'
+--
+-- POLICY 4: Authenticated Delete
+--   Name: "Authenticated users can delete property images"
+--   Operation: DELETE
+--   Target roles: authenticated
+--   USING expression: bucket_id = 'property-images' AND auth.role() = 'authenticated'
+-- ============================================================================
+
+-- ============================================================================
+-- STEP-BY-STEP INSTRUCTIONS
+-- ============================================================================
+--
+-- STEP 1: Create the Bucket (if not exists)
+--   1. Go to Supabase Dashboard > Storage
+--   2. Click "New bucket" or "Create Bucket"
+--   3. Name: "property-images"
+--   4. Public bucket: YES (toggle ON) - This is critical!
+--   5. File size limit: 5 MB (or as needed)
+--   6. Allowed MIME types: image/* (or leave empty)
+--   7. Click "Create bucket"
+--
+-- STEP 2: Create Storage Policies via Dashboard UI
+--   1. Go to Storage > Policies (or click on the "property-images" bucket)
+--   2. Click "New Policy" or "Add Policy"
+--   3. For each policy below, create it with the specified settings:
+--
+--   POLICY 1: Public Read
+--     - Policy name: "Public can view property images"
+--     - Allowed operation: SELECT
+--     - Target roles: public
+--     - USING expression: bucket_id = 'property-images'
+--     - Click "Review" then "Save policy"
+--
+--   POLICY 2: Authenticated Upload
+--     - Policy name: "Authenticated users can upload property images"
+--     - Allowed operation: INSERT
+--     - Target roles: authenticated
+--     - WITH CHECK expression: bucket_id = 'property-images' AND auth.role() = 'authenticated'
+--     - Click "Review" then "Save policy"
+--
+--   POLICY 3: Authenticated Update
+--     - Policy name: "Authenticated users can update property images"
+--     - Allowed operation: UPDATE
+--     - Target roles: authenticated
+--     - USING expression: bucket_id = 'property-images' AND auth.role() = 'authenticated'
+--     - WITH CHECK expression: bucket_id = 'property-images' AND auth.role() = 'authenticated'
+--     - Click "Review" then "Save policy"
+--
+--   POLICY 4: Authenticated Delete
+--     - Policy name: "Authenticated users can delete property images"
+--     - Allowed operation: DELETE
+--     - Target roles: authenticated
+--     - USING expression: bucket_id = 'property-images' AND auth.role() = 'authenticated'
+--     - Click "Review" then "Save policy"
+--
+-- STEP 3: Verify Policies
+--   After creating all policies, you should see 4 policies listed in the
+--   Storage > Policies section for the "property-images" bucket.
+--
+-- STEP 4: Test
+--   Try uploading an image through the PropertyForm. It should work now!
+--
+-- ============================================================================
+-- ALTERNATIVE: Quick Setup (Simpler Policies)
+-- ============================================================================
+-- If you want simpler policies that allow all authenticated users:
+--
+-- 1. Go to Storage > property-images bucket > Policies
+-- 2. Click "New Policy" > "For full customization"
+-- 3. Create these 2 policies:
+--
+--    Policy 1: "Public SELECT"
+--    - Operation: SELECT
+--    - Roles: public
+--    - Expression: bucket_id = 'property-images'
+--
+--    Policy 2: "Authenticated ALL"
+--    - Operation: ALL (or create separate INSERT, UPDATE, DELETE)
+--    - Roles: authenticated
+--    - Expression: bucket_id = 'property-images'
+--
+-- This is simpler but less secure (all authenticated users can manage images).
+-- The 4-policy approach above is more granular and recommended.
+-- ============================================================================
+

@@ -1,21 +1,20 @@
-// Format currency values
-export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(amount);
-};
+// Re-export formatting utilities
+export * from './formatting';
 
-// Format numbers with commas
-export const formatNumber = (value: number): string => {
-  return new Intl.NumberFormat('en-US').format(value);
-};
+// Re-export security utilities
+export * from './security';
 
-// Truncate text to specified length
-export const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength).trim() + '...';
-};
+// Re-export sanitization utilities
+export * from './sanitize';
+
+// Re-export logger utilities
+export * from './logger';
+
+// Re-export image optimization utilities
+export * from './imageOptimization';
+
+// Re-export placeholder utilities
+export * from './placeholders';
 
 // Generate slug from string
 export const generateSlug = (text: string): string => {

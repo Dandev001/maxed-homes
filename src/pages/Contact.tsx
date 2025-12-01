@@ -11,6 +11,9 @@ import {
   Linkedin
 } from 'lucide-react';
 import { ROUTES } from '../constants';
+import SEO from '../components/SEO';
+import { useCreateContactMessage } from '../hooks/useContactMessages';
+import { sanitizeString, sanitizeEmail, sanitizePhone } from '../utils/sanitize';
 import houseImage from '../assets/images/house1.jpg';
 import roadImage from '../assets/images/road.jpg';
 
@@ -27,6 +30,7 @@ interface FormErrors {
 }
 
 const Contact = () => {
+  const { createContactMessage, loading: isSubmitting } = useCreateContactMessage();
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
@@ -36,7 +40,7 @@ const Contact = () => {
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -83,11 +87,21 @@ const Contact = () => {
       return;
     }
 
-    setIsSubmitting(true);
+    setSuccessMessage(null);
+    setErrors({});
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Sanitize all inputs before sending
+      const sanitizedEmail = sanitizeEmail(formData.email.trim());
+      const sanitizedPhone = formData.phone.trim() ? sanitizePhone(formData.phone.trim()) : undefined;
+      
+      await createContactMessage({
+        full_name: sanitizeString(formData.fullName.trim()),
+        email: sanitizedEmail,
+        phone: sanitizedPhone,
+        subject: sanitizeString(formData.subject.trim()),
+        message: sanitizeString(formData.message.trim())
+      });
       
       // Reset form on success
       setFormData({
@@ -98,16 +112,27 @@ const Contact = () => {
         message: ''
       });
       
-      alert('Message sent successfully!');
-    } catch {
-      alert('Failed to send message. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+      setSuccessMessage('Message sent successfully! We\'ll get back to you soon.');
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send message. Please try again.';
+      setErrors({ general: errorMessage });
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
+      <SEO
+        title="Contact Us"
+        description="Get in touch with Maxed Homes. Have questions about our properties or need assistance? Contact our team - we're here to help with all your vacation rental needs."
+        keywords="contact Maxed Homes, customer support, vacation rental inquiries, property questions, booking assistance"
+        url="/contact"
+      />
+      <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section 
         className="relative min-h-screen text-white overflow-hidden bg-cover bg-center bg-no-repeat"
@@ -291,6 +316,20 @@ const Contact = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
               viewport={{ once: true, margin: "-100px" }}
             >
+              {/* Success Message */}
+              {successMessage && (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800">{successMessage}</p>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {errors.general && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">{errors.general}</p>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Full Name */}
                 <div>
@@ -462,7 +501,8 @@ const Contact = () => {
           </motion.div>
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 };
 
